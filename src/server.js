@@ -7,6 +7,7 @@ import { connectDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import verifyRoutes from './routes/verifyRoutes.js';
 
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
@@ -26,6 +27,7 @@ app.get('/', (_, res) => res.json({ ok: true, service: 'verify-hub-api' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/verify', verifyRoutes);
 
 const PORT = process.env.PORT || 5000;
 connectDB(process.env.MONGO_URI)

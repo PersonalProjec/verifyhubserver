@@ -72,7 +72,6 @@ export async function listUsers(req, res) {
   res.json({ page, limit, total, items: rows });
 }
 
-// GET /api/admin/users/:id  (basic profile)
 export async function getUserById(req, res) {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id))
@@ -98,7 +97,6 @@ export async function getUserById(req, res) {
   res.json(profile);
 }
 
-// GET /api/admin/users/:id/verifications?page=&limit=&status=
 export async function getUserVerifications(req, res) {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id))
@@ -110,7 +108,7 @@ export async function getUserVerifications(req, res) {
   );
   const status = req.query.status;
 
-  const query = { userId: new mongoose.Types.ObjectId(id) };
+  const query = { userId: id };
   if (status) query.status = status;
 
   const [items, total] = await Promise.all([
@@ -125,7 +123,6 @@ export async function getUserVerifications(req, res) {
   res.json({ page, limit, total, items });
 }
 
-// GET /api/admin/users/:id/payments?page=&limit=&status=
 export async function getUserPayments(req, res) {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id))
@@ -137,7 +134,8 @@ export async function getUserPayments(req, res) {
   );
   const status = req.query.status;
 
-  const query = { userId: new mongoose.Types.ObjectId(id) };
+  // const query = { userId: new mongoose.Types.ObjectId(id) };
+  const query = { userId: id };
   if (status) query.status = status;
 
   const [items, total] = await Promise.all([

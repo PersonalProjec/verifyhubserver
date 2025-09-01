@@ -8,6 +8,8 @@ const verificationSchema = new mongoose.Schema(
       index: true,
       required: true,
     },
+    code: { type: String, required: true, unique: true, index: true }, // <-- add this
+
     type: { type: String, required: true }, // e.g., 'WAEC', 'NECO', 'BirthCert', etc.
     provider: { type: String }, // API/source used (if any)
     targetId: { type: String }, // token/number/ID being verified
@@ -20,6 +22,8 @@ const verificationSchema = new mongoose.Schema(
     },
     result: { type: Object }, // normalized verification result
     evidenceUrl: { type: String }, // link to signed PDF / receipt if any
+    sharePublic: { type: Boolean, default: true },
+    issuerEmailSentAt: Date,
   },
   { timestamps: true }
 );

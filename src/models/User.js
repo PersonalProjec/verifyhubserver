@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     phone: String,
     company: String,
     country: String,
-
+    lastLoginAt: Date,
     emailVerified: { type: Boolean, default: false },
 
     // Email verification
