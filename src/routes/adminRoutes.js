@@ -1,21 +1,27 @@
 import { Router } from 'express';
-import Admin from '../models/Admin.js';
-import { signToken, requireAdmin } from '../middleware/auth.js';
+import { requireAdmin } from '../middleware/auth.js';
+import {
+  adminLogin,
+  changeAdminPassword,
+  getAdminInfo,
+} from '../controllers/AdminController.js';
+import {
+  listUsers,
+  getUserById,
+  getUserVerifications,
+  getUserPayments,
+} from '../controllers/adminUsersController.js';
 
 const router = Router();
 
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body || {};
-  const a = await Admin.findOne({ username });
-  if (!a) return res.status(404).json({ error: 'Admin not found' });
-  if (!(await a.comparePassword(password))) return res.status(400).json({ error: 'Invalid credentials' });
-  const token = signToken({ sub: a._id, username: a.username, admin: true, role: 'admin' });
-  res.json({ token });
-});
+router.post('/login', adminLogin);
+router.post('/change-password', requireAdmin, changeAdminPassword);
+router.get('/me', requireAdmin, getAdminInfo);
 
-// Example protected admin endpoint
-router.get('/me', requireAdmin, (req, res) => {
-  res.json({ ok: true, admin: req.admin });
-});
+router.get('/users', requireAdmin, listUsers);
+router.get('/users/:id', requireAdmin, getUserById);
+router.get('/users/:id/verifications', requireAdmin, getUserVerifications);
+router.get('/users/:id/payments', requireAdmin, getUserPayments);
+
 
 export default router;

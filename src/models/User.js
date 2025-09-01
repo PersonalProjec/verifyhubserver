@@ -3,7 +3,13 @@ import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema(
   {
-    email: { type: String, unique: true, index: true },
+    email: {
+      type: String,
+      unique: true,
+      index: true,
+      lowercase: true,
+      trim: true,
+    },
     passwordHash: String,
 
     // Profile (all optional)

@@ -87,13 +87,54 @@ export async function verifyEmail(req, res) {
 }
 
 export async function login(req, res) {
-  const { email, password } = req.body || {};
+  let { email, password } = req.body || {};
+  if (!email || !password)
+    return res.status(400).json({ error: 'email & password required' });
+
+  email = String(email).toLowerCase().trim();
+
   const u = await User.findOne({ email });
   if (!u) return res.status(404).json({ error: 'User not found' });
   if (!(await u.comparePassword(password)))
     return res.status(400).json({ error: 'Invalid credentials' });
   if (!u.emailVerified)
     return res.status(403).json({ error: 'Email not verified' });
+
+  u.lastLoginAt = new Date();
+  await u.save();
+
+  const token = signToken({ sub: u._id, email: u.email, role: 'user' });
+  res.json({ token });
+}
+
+export async function loginWithCode(req, res) {
+  let { email, code } = req.body || {};
+  if (!email || !code)
+    return res.status(400).json({ error: 'email & code required' });
+
+  email = String(email).toLowerCase().trim();
+  code = String(code).trim();
+
+  // Optional but recommended: enforce 6-digit numeric code
+  if (!/^\d{6}$/.test(code))
+    return res.status(400).json({ error: 'Invalid/expired code' });
+
+  const u = await User.findOne({ email });
+  if (!u) return res.status(404).json({ error: 'User not found' });
+
+  if (!u.loginCode || u.loginCode !== code || new Date() > u.loginCodeExpiresAt)
+    return res.status(400).json({ error: 'Invalid/expired code' });
+
+  // consume the code + tidy metadata
+  u.loginCode = undefined;
+  u.loginCodeExpiresAt = undefined;
+  u.loginCodeSentAt = undefined; // optional tidy
+  u.lastLoginAt = new Date();
+
+  // auto-verify on successful code login (your intended behavior)
+  if (!u.emailVerified) u.emailVerified = true;
+
+  await u.save();
 
   const token = signToken({ sub: u._id, email: u.email, role: 'user' });
   res.json({ token });
@@ -123,35 +164,20 @@ export async function requestLoginCode(req, res) {
   res.json({ ok: true, message: 'Login code sent' });
 }
 
-export async function loginWithCode(req, res) {
-  const { email, code } = req.body || {};
-  const u = await User.findOne({ email });
-  if (!u) return res.status(404).json({ error: 'User not found' });
-
-  if (!u.loginCode || u.loginCode !== code || new Date() > u.loginCodeExpiresAt)
-    return res.status(400).json({ error: 'Invalid/expired code' });
-
-  // consume the code
-  u.loginCode = undefined;
-  u.loginCodeExpiresAt = undefined;
-
-  // Option: auto-verify on successful login code
-  if (!u.emailVerified) u.emailVerified = true;
-
-  await u.save();
-
-  const token = signToken({ sub: u._id, email: u.email, role: 'user' });
-  res.json({ token });
-}
-
 export async function forgotPassword(req, res) {
   const { email } = req.body || {};
   const u = await User.findOne({ email });
   // For privacy, always return ok, but only send if user exists
-  if (!u) return res.json({ ok: true, message: 'If this email exists, a reset code has been sent.' });
+  if (!u)
+    return res.json({
+      ok: true,
+      message: 'If this email exists, a reset code has been sent.',
+    });
 
   if (withinCooldown(u.passwordResetSentAt))
-    return res.status(429).json({ error: 'Please wait 60 seconds before requesting another code' });
+    return res
+      .status(429)
+      .json({ error: 'Please wait 60 seconds before requesting another code' });
 
   u.passwordResetCode = sixDigit();
   u.passwordResetExpiresAt = minutesFromNow(15);
@@ -169,12 +195,17 @@ export async function forgotPassword(req, res) {
 
 export async function resetPassword(req, res) {
   const { email, code, newPassword } = req.body || {};
-  if (!email || !code || !newPassword) return res.status(400).json({ error: 'email, code, newPassword required' });
+  if (!email || !code || !newPassword)
+    return res.status(400).json({ error: 'email, code, newPassword required' });
 
   const u = await User.findOne({ email });
   if (!u) return res.status(404).json({ error: 'User not found' });
 
-  if (!u.passwordResetCode || u.passwordResetCode !== code || new Date() > u.passwordResetExpiresAt)
+  if (
+    !u.passwordResetCode ||
+    u.passwordResetCode !== code ||
+    new Date() > u.passwordResetExpiresAt
+  )
     return res.status(400).json({ error: 'Invalid/expired code' });
 
   // consume the reset

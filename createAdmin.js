@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { connectDB } from '../src/config/db.js';
-import Admin from '../src/models/Admin.js';
+import { connectDB } from './src/config/db.js';
+import Admin from './src/models/Admin.js';
 
 (async () => {
   const [, , username, password] = process.argv;
