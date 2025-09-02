@@ -12,7 +12,7 @@ import {
   getUserPayments,
 } from '../controllers/adminUsersController.js';
 import { getAdminOverview } from '../controllers/adminOverviewController.js';
-import { rateLimitVerify } from '../middleware/ratelimit.js';
+import { rateLimitVerify } from '../middleware/rateLimit.js';
 
 const router = Router();
 
