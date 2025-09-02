@@ -8,9 +8,16 @@ import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import verifyRoutes from './routes/verifyRoutes.js';
+import billingRoutes from './routes/billingRoutes.js';
 
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+
+app.post(
+  '/api/billing/paystack/webhook',
+  express.raw({ type: '*/*' }),
+  (req, res, next) => next()
+);
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -22,12 +29,12 @@ const ipLimiter = rateLimit({
 });
 app.use(ipLimiter);
 
-
 app.get('/', (_, res) => res.json({ ok: true, service: 'verify-hub-api' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/verify', verifyRoutes);
+app.use('/api/billing', billingRoutes);
 
 const PORT = process.env.PORT || 5000;
 connectDB(process.env.MONGO_URI)

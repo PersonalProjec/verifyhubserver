@@ -36,14 +36,27 @@ export async function listUsers(req, res) {
   let verificationsMap = {};
   let paymentsMap = {};
   if (items.length > 0) {
-    const ids = items.map((u) => u._id);
+    const idsObj = items.map((u) => u._id);
+    const idsStr = idsObj.map((id) => String(id));
+
     const [verAgg, payAgg] = await Promise.all([
       Verification.aggregate([
-        { $match: { userId: { $in: ids } } },
+        {
+          $match: {
+            $or: [
+              { userId: { $in: idsObj } },
+              { userId: { $in: idsStr } },
+            ],
+          },
+        },
         { $group: { _id: '$userId', count: { $sum: 1 } } },
       ]),
       Payment.aggregate([
-        { $match: { userId: { $in: ids } } },
+        {
+          $match: {
+            $or: [{ userId: { $in: idsObj } }, { userId: { $in: idsStr } }],
+          },
+        },
         { $group: { _id: '$userId', count: { $sum: 1 } } },
       ]),
     ]);
@@ -108,7 +121,9 @@ export async function getUserVerifications(req, res) {
   );
   const status = req.query.status;
 
-  const query = { userId: id };
+  const objId = new mongoose.Types.ObjectId(id);
+  const query = { $or: [{ userId: objId }, { userId: id }] };
+  // const query = { userId: id };
   if (status) query.status = status;
 
   const [items, total] = await Promise.all([
@@ -133,9 +148,9 @@ export async function getUserPayments(req, res) {
     100
   );
   const status = req.query.status;
-
-  // const query = { userId: new mongoose.Types.ObjectId(id) };
-  const query = { userId: id };
+  const objId = new mongoose.Types.ObjectId(id);
+  const query = { $or: [{ userId: objId }, { userId: id }] };
+  // const query = { userId: id };
   if (status) query.status = status;
 
   const [items, total] = await Promise.all([

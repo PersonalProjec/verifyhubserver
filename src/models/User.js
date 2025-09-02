@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema(
     country: String,
     lastLoginAt: Date,
     emailVerified: { type: Boolean, default: false },
+    credits: { type: Number, default: 0 },
 
     // Email verification
     emailVerifyCode: String,

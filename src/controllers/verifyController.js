@@ -9,7 +9,7 @@ import {
 import Verification from '../models/Verification.js';
 import path from 'path';
 import PDFDocument from 'pdfkit';
-// import pdf from 'pdf-parse';
+import User from '../models/User.js';
 import { createMailer } from '../config/mailer.js';
 
 const mailer = createMailer();
@@ -77,6 +77,8 @@ export async function uploadVerification(req, res) {
     code,
   });
 
+  await User.updateOne({ _id: req.user.sub }, { $inc: { credits: -1 } });
+
   // 5) store PDF text (optional separate field to avoid bloating result)
   if (pdfText) {
     await Verification.updateOne(
@@ -123,6 +125,13 @@ export async function uploadVerification(req, res) {
     );
   }
 
+  // 7) consume credits now (middleware computed and attached on req)
+  const cost = Number(req._verificationCost || 5);
+  await User.updateOne({ _id: req.user.sub }, { $inc: { credits: -cost } });
+  const updatedUser = await User.findById(req.user.sub)
+    .select('credits')
+    .lean();
+
   const publicUrl = `${
     process.env.PUBLIC_BASE_URL || 'http://localhost:5173'
   }/v/${code}`;
@@ -136,6 +145,8 @@ export async function uploadVerification(req, res) {
     fileUrl,
     status: v.status,
     emailed: !!issuerEmail,
+    creditsLeft: updatedUser?.credits ?? null,
+    cost,
   });
 }
 

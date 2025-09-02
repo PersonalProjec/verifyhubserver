@@ -11,6 +11,7 @@ import {
   getUserVerifications,
   getUserPayments,
 } from '../controllers/adminUsersController.js';
+import { getAdminOverview } from '../controllers/adminOverviewController.js';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.get('/users', requireAdmin, listUsers);
 router.get('/users/:id', requireAdmin, getUserById);
 router.get('/users/:id/verifications', requireAdmin, getUserVerifications);
 router.get('/users/:id/payments', requireAdmin, getUserPayments);
+router.get('/overview', requireAdmin, getAdminOverview);
 
 
 export default router;

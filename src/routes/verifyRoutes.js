@@ -11,6 +11,7 @@ import {
   toggleSharePublic,
   sendAttestationEmail,
 } from '../controllers/verifyController.js';
+import { requireCreditsForVerification } from '../middleware/requireCredits.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -19,8 +20,13 @@ const upload = multer({
 
 const router = Router();
 
-// Authenticated
-router.post('/upload', requireUser, upload.single('file'), uploadVerification);
+router.post(
+  '/upload',
+  requireUser,
+  requireCreditsForVerification,
+  upload.single('file'),
+  uploadVerification
+);
 router.get('/', requireUser, getMyVerifications);
 router.get('/:id', requireUser, getOneVerification);
 router.post('/:id/attest', attestVerification); // token-based, public caller allowed if token is valid
@@ -31,6 +37,5 @@ router.get('/public/receipt/:code.pdf', publicReceiptPdf);
 router.post('/:id/share', requireUser, toggleSharePublic);
 // routes/verifyRoutes.js
 router.post('/:id/send-attestation', requireUser, sendAttestationEmail);
-
 
 export default router;
