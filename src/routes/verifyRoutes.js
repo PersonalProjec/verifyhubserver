@@ -10,8 +10,11 @@ import {
   publicReceiptPdf,
   toggleSharePublic,
   sendAttestationEmail,
+  runVerification,
 } from '../controllers/verifyController.js';
 import { requireCreditsForVerification } from '../middleware/requireCredits.js';
+import { idempotency } from '../middleware/idempotency.js';
+import { rateLimitVerify } from '../middleware/ratelimit.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -24,18 +27,31 @@ router.post(
   '/upload',
   requireUser,
   requireCreditsForVerification,
+  rateLimitVerify(6),
   upload.single('file'),
   uploadVerification
 );
 router.get('/', requireUser, getMyVerifications);
 router.get('/:id', requireUser, getOneVerification);
-router.post('/:id/attest', attestVerification); // token-based, public caller allowed if token is valid
+router.post('/:id/attest', rateLimitVerify(3), attestVerification); // token-based, public caller allowed if token is valid
 
 // Public
-router.get('/public/code/:code', getPublicVerification);
-router.get('/public/receipt/:code.pdf', publicReceiptPdf);
+router.get('/public/code/:code', rateLimitVerify(60), getPublicVerification);
+router.get('/public/receipt/:code.pdf', rateLimitVerify(12), publicReceiptPdf);
 router.post('/:id/share', requireUser, toggleSharePublic);
 // routes/verifyRoutes.js
-router.post('/:id/send-attestation', requireUser, sendAttestationEmail);
+router.post(
+  '/:id/send-attestation',
+  requireUser,
+  idempotency(),
+  rateLimitVerify(3),
+  sendAttestationEmail
+);
+router.post(
+  '/run',
+  requireUser,
+  requireCreditsForVerification,
+  runVerification
+);
 
 export default router;

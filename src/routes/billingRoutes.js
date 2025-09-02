@@ -5,6 +5,7 @@ import Payment from '../models/Payment.js';
 import crypto from 'crypto';
 import fetch from 'node-fetch';
 import User from '../models/User.js';
+import { idempotency } from '../middleware/idempotency.js';
 
 const router = Router();
 const PSK = process.env.PAYSTACK_SECRET_KEY;
@@ -15,7 +16,7 @@ router.get('/price', (req, res) => {
 });
 
 // Init checkout
-router.post('/paystack/init', requireUser, async (req, res) => {
+router.post('/paystack/init', requireUser, idempotency(), async (req, res) => {
   const { amountKobo, credits = 1 } = req.body || {};
   const amount = Number(amountKobo || 100000); // default ₦1,000
   const reference = `vh_${Date.now()}_${Math.random()

@@ -6,6 +6,7 @@ import {
   signAttestToken,
   verifyAttestToken,
 } from '../utils/verifyUtils.js';
+import { runProvider } from '../providers/index.js';
 import Verification from '../models/Verification.js';
 import path from 'path';
 import PDFDocument from 'pdfkit';
@@ -309,4 +310,14 @@ export async function sendAttestationEmail(req, res) {
   await v.save();
 
   res.json({ ok: true });
+}
+
+export async function runVerification(req, res) {
+  const { provider, fields } = req.body || {};
+  // 1) debit credits (5) — you already do this for uploads; do the same here
+  // 2) call provider
+  const result = await runProvider(provider, fields);
+  // 3) persist into Verification document (status: verified/failed + normalized fields)
+  // 4) return clean summary for UI
+  res.json(result); 
 }

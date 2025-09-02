@@ -9,6 +9,8 @@ import adminRoutes from './routes/adminRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import verifyRoutes from './routes/verifyRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
+import providerRoutes from './routes/providerRoutes.js';
+import adminProviderRoutes from './routes/adminProviderRoutes.js';
 
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
@@ -35,6 +37,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/providers', providerRoutes);
+app.use('/api/admin/providers', adminProviderRoutes);
+
+
 
 const PORT = process.env.PORT || 5000;
 connectDB(process.env.MONGO_URI)

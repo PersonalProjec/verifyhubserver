@@ -12,6 +12,7 @@ import {
   getUserPayments,
 } from '../controllers/adminUsersController.js';
 import { getAdminOverview } from '../controllers/adminOverviewController.js';
+import { rateLimitVerify } from '../middleware/ratelimit.js';
 
 const router = Router();
 
@@ -20,8 +21,8 @@ router.post('/change-password', requireAdmin, changeAdminPassword);
 router.get('/me', requireAdmin, getAdminInfo);
 
 router.get('/users', requireAdmin, listUsers);
-router.get('/users/:id', requireAdmin, getUserById);
-router.get('/users/:id/verifications', requireAdmin, getUserVerifications);
+router.get('/users/:id', requireAdmin,rateLimitVerify(30), getUserById);
+router.get('/users/:id/verifications', requireAdmin,rateLimitVerify(60), getUserVerifications);
 router.get('/users/:id/payments', requireAdmin, getUserPayments);
 router.get('/overview', requireAdmin, getAdminOverview);
 
