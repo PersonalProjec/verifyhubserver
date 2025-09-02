@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireUser } from '../middleware/auth.js';
 import { idempotency } from '../middleware/idempotency.js';
-import { rateLimitVerify } from '../middleware/ratelimit.js';
+import { rateLimitVerify } from '../middleware/rateLimit.js';
 import { requireCreditsForVerification } from '../middleware/requireCredits.js';
 import {
   getProviderCatalog,

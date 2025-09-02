@@ -14,7 +14,7 @@ import {
 } from '../controllers/verifyController.js';
 import { requireCreditsForVerification } from '../middleware/requireCredits.js';
 import { idempotency } from '../middleware/idempotency.js';
-import { rateLimitVerify } from '../middleware/ratelimit.js';
+import { rateLimitVerify } from '../middleware/rateLimit.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
